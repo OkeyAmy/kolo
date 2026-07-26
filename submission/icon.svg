@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="960" y2="1024">
+      <stop offset="0" stop-color="#1B1725"/>
+      <stop offset="1" stop-color="#0C0A10"/>
+    </linearGradient>
+    <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="512" cy="150" r="740">
+      <stop offset="0" stop-color="#FFC24A" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#FFC24A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="250" y1="180" x2="800" y2="860">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="0.46" stop-color="#FFC24A"/>
+      <stop offset="1" stop-color="#E8734A"/>
+    </linearGradient>
+    <linearGradient id="potGold" gradientUnits="userSpaceOnUse" x1="7" y1="5" x2="25" y2="29">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="0.34" stop-color="#FFC24A"/>
+      <stop offset="1" stop-color="#E39A12"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="228" fill="url(#glow)"/>
+
+  
+    <circle cx="512" cy="520" r="356" fill="none"
+            stroke="#F6F1E9" stroke-opacity="0.09" stroke-width="48"/>
+    <circle cx="512" cy="520" r="356" fill="none"
+            stroke="url(#gold)" stroke-width="48" stroke-linecap="round"
+            stroke-dasharray="1398.008730847458 2236.813969355933"
+            transform="rotate(-90 512 520)"/>
+  
+    <g transform="translate(276 258) scale(14.75)">
+      <path d="M6 13.5C6 10.4624 8.46243 8 11.5 8h9C23.5376 8 26 10.4624 26 13.5v6C26 24.7467 21.7467 29 16.5 29h-1C10.2533 29 6 24.7467 6 19.5v-6Z" fill="url(#potGold)"/>
+      <rect x="12.5" y="4" width="7" height="2.6" rx="1.3" fill="url(#potGold)"/>
+      <rect x="12.9" y="11.6" width="6.2" height="2.4" rx="1.2" fill="#2B1B00" opacity="0.52"/>
+    </g>
+</svg>

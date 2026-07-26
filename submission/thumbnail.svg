@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1598" height="523" viewBox="0 0 1598 523">
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1598" y2="523">
+      <stop offset="0" stop-color="#14111B"/>
+      <stop offset="1" stop-color="#0C0A10"/>
+    </linearGradient>
+    <radialGradient id="glowA" gradientUnits="userSpaceOnUse" cx="1210" cy="250" r="560">
+      <stop offset="0" stop-color="#FFC24A" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#FFC24A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" gradientUnits="userSpaceOnUse" cx="80" cy="40" r="620">
+      <stop offset="0" stop-color="#E8734A" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#E8734A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="1040" y1="80" x2="1400" y2="440">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="0.5" stop-color="#FFC24A"/>
+      <stop offset="1" stop-color="#E8734A"/>
+    </linearGradient>
+    <linearGradient id="markGold" gradientUnits="userSpaceOnUse" x1="7" y1="5" x2="25" y2="29">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="0.4" stop-color="#FFC24A"/>
+      <stop offset="1" stop-color="#E39A12"/>
+    </linearGradient>
+    <linearGradient id="goldText" gradientUnits="userSpaceOnUse" x1="92" y1="272" x2="620" y2="330">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="1" stop-color="#FFC24A"/>
+    </linearGradient>
+    <linearGradient id="potText" gradientUnits="userSpaceOnUse" x1="1120" y1="262" x2="1320" y2="300">
+      <stop offset="0" stop-color="#FFD98A"/>
+      <stop offset="1" stop-color="#FFC24A"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1598" height="523" fill="url(#bg)"/>
+  <rect width="1598" height="523" fill="url(#glowA)"/>
+  <rect width="1598" height="523" fill="url(#glowB)"/>
+
+  
+    <g transform="translate(92 72) scale(2.25)">
+      <path d="M6 13.5C6 10.4624 8.46243 8 11.5 8h9C23.5376 8 26 10.4624 26 13.5v6C26 24.7467 21.7467 29 16.5 29h-1C10.2533 29 6 24.7467 6 19.5v-6Z" fill="url(#markGold)"/>
+      <rect x="12.5" y="4" width="7" height="2.6" rx="1.3" fill="url(#markGold)"/>
+      <rect x="12.9" y="11.6" width="6.2" height="2.4" rx="1.2" fill="#2B1B00" opacity="0.52"/>
+    </g>
+  <text x="182" y="132" font-family="DejaVu Sans" font-size="62" font-weight="bold"
+        fill="#F6F1E9" letter-spacing="-2">Kolo</text>
+
+  <text x="92" y="252" font-family="DejaVu Sans" font-size="53" font-weight="bold"
+        fill="#F6F1E9" letter-spacing="-1.5">Eight friends. One pot.</text>
+  <text x="92" y="320" font-family="DejaVu Sans" font-size="53" font-weight="bold"
+        fill="url(#goldText)" letter-spacing="-1.5">Your turn comes.</text>
+
+  <text x="92" y="386" font-family="DejaVu Sans" font-size="27" fill="#A99FBA">
+    Savings circles, verified on the Nimiq chain.
+  </text>
+  <text x="92" y="424" font-family="DejaVu Sans" font-size="27" fill="#A99FBA">
+    Kolo never holds your money.
+  </text>
+
+  <rect x="92" y="456" width="296" height="42" rx="21" fill="#FFC24A" fill-opacity="0.13"/>
+  <text x="117" y="484" font-family="DejaVu Sans" font-size="21" font-weight="bold" fill="#FFC24A">
+    Nimiq Pay mini app
+  </text>
+
+  <g>
+    <circle cx="1218" cy="262" r="190" fill="none" stroke="#F6F1E9" stroke-opacity="0.09"
+            stroke-width="3" stroke-dasharray="7 19"/>
+    
+        <circle cx="1218" cy="72" r="40.5" fill="#FFC24A" opacity="0.14"/>
+        <circle cx="1218" cy="72" r="31" fill="none" stroke="#FFC24A" stroke-width="3.25"/>
+        <circle cx="1218" cy="72" r="25" fill="url(#gold)"/><circle cx="1352.350288425444" cy="127.649711574556" r="22.5" fill="#5F6B7E"/>
+        <circle cx="1369.850288425444" cy="145.149711574556" r="10.5" fill="#4FD6A0"/>
+        <path d="M1365.350288425444 145.649711574556 l3.5000000000000004 3.75 l6 -7.000000000000001"
+              fill="none" stroke="#0C0A10" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1408" cy="262" r="22.5" fill="#7C6A5E"/>
+        <circle cx="1425.5" cy="279.5" r="10.5" fill="#4FD6A0"/>
+        <path d="M1421 280 l3.5000000000000004 3.75 l6 -7.000000000000001"
+              fill="none" stroke="#0C0A10" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1352.350288425444" cy="396.350288425444" r="22.5" fill="#5E7269"/>
+        <circle cx="1369.850288425444" cy="413.850288425444" r="10.5" fill="#4FD6A0"/>
+        <path d="M1365.350288425444 414.350288425444 l3.5000000000000004 3.75 l6 -7.000000000000001"
+              fill="none" stroke="#0C0A10" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1218" cy="452" r="22.5" fill="#71627A"/>
+        <circle cx="1235.5" cy="469.5" r="10.5" fill="#4FD6A0"/>
+        <path d="M1231 470 l3.5000000000000004 3.75 l6 -7.000000000000001"
+              fill="none" stroke="#0C0A10" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="1083.649711574556" cy="396.35028842544403" r="22.5" fill="#67707F"/><circle cx="1028" cy="262" r="22.5" fill="#7A6E60"/><circle cx="1083.649711574556" cy="127.649711574556" r="22.5" fill="#5C6E74"/>
+
+    <text x="1218" y="228" text-anchor="middle" font-family="DejaVu Sans" font-size="19"
+          fill="#A99FBA" letter-spacing="3">ROUND 5 OF 8</text>
+    <text x="1218" y="286" text-anchor="middle" font-family="DejaVu Sans" font-size="46"
+          font-weight="bold" fill="url(#potText)" letter-spacing="-1">3,500 NIM</text>
+    <text x="1218" y="324" text-anchor="middle" font-family="DejaVu Sans" font-size="21"
+          fill="#A99FBA">4 of 7 paid in</text>
+  </g>
+</svg>
