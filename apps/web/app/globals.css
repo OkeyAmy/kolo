@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/*
+  Kolo's visual language.
+
+  Warm, dark, and calm. This is a money app that people open on a cheap Android
+  phone in bright daylight, so: high contrast, large hit targets, no thin grey
+  text, no decorative motion that costs a frame. The palette is clay and amber —
+  a savings box, not a trading terminal.
+*/
+
+@theme {
+  --color-ink: #0C0A10;
+  --color-ink-2: #14111B;
+  --color-surface: #1B1725;
+  --color-surface-2: #241F31;
+  --color-line: #322B42;
+  --color-line-soft: #26202F;
+
+  --color-cream: #F6F1E9;
+  --color-muted: #A99FBA;
+  --color-faint: #6F6683;
+
+  --color-gold: #FFC24A;
+  --color-gold-deep: #E39A12;
+  --color-clay: #E8734A;
+  --color-mint: #4FD6A0;
+  --color-sky: #57A8FF;
+  --color-rose: #FF6F76;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --radius-card: 22px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html {
+  background: var(--color-ink);
+  overflow-x: hidden;
+  /* Stop iOS from silently enlarging our carefully sized type. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(900px 520px at 50% -10%, rgba(255, 194, 74, 0.13), transparent 68%),
+    radial-gradient(700px 420px at 110% 8%, rgba(232, 115, 74, 0.10), transparent 64%),
+    var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv01";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: not-allowed; }
+input, textarea, select { -webkit-appearance: none; appearance: none; }
+
+::selection { background: rgba(255, 194, 74, 0.28); }
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Numbers in this app are money. They must never jitter as they update. */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+.glass {
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  border: 1px solid var(--color-line-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hairline { border: 1px solid var(--color-line-soft); }
+
+.gold-text {
+  background: linear-gradient(96deg, #FFD98A, #FFC24A 42%, #E8A33A);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gold-fill {
+  background: linear-gradient(168deg, #FFD277, #FFC24A 46%, #E89B20);
+  color: #2B1B00;
+}
+
+.press { transition: transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1), filter 120ms ease; }
+.press:active:not(:disabled) { transform: scale(0.972); filter: brightness(1.06); }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.rise { animation: rise 340ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.07); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+.breathe { animation: breathe 2.4s ease-in-out infinite; }
+
+@keyframes sweep {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(220%); }
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(96deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: sweep 1.8s ease-in-out infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 720ms linear infinite; }
+
+/* Anything that moves is decoration. Turn it off when asked. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.safe-bottom { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.safe-top { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+
+/* Hide the scrollbar on horizontal rails without losing scrollability. */
+.rail { scrollbar-width: none; }
+.rail::-webkit-scrollbar { display: none; }

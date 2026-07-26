@@ -1,0 +1,27 @@
+{
+  "name": "kolo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.4",
+  "scripts": {
+    "dev": "pnpm --filter @kolo/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "pnpm -r lint",
+    "security:scan": "node scripts/security-scan.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm security:scan && pnpm build",
+    "db:generate": "pnpm --filter @kolo/core db:generate",
+    "db:migrate": "pnpm --filter @kolo/core db:migrate"
+  },
+  "devDependencies": {
+    "@noble/curves": "^1.9.1",
+    "@noble/hashes": "^1.8.0",
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

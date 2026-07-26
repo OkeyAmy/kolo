@@ -1,0 +1,15 @@
+node_modules/
+.next/
+dist/
+coverage/
+.turbo/
+.env
+.env.local
+*.log
+*.tsbuildinfo
+.DS_Store
+.vercel/
+.secrets/
+.cache/
+contracts/reputation/target/
+.vercel
