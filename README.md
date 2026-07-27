@@ -47,7 +47,6 @@ Kolo also has to track things a wallet has no concept of: whose turn it is, who 
 | **Start a circle** | Amount, rhythm, how many people. Share the link. It starts by itself when the last seat fills. |
 | **Pay your round** | One button. Straight to whoever collects this round, with the memo attached. |
 | **Watch it verify** | Your tile flips to *Paid ✓* when the transaction is found on chain, with a link to the explorer. |
-| **Save alone first** | A solo savings box with a streak, for when you have nobody to invite yet. Same rail, same proof. |
 | **Swap turns** | Need the money sooner? Ask someone to trade. Both of you sign; both signatures stay on the record. |
 | **Build a record** | Rounds paid, rounds on time, rounds missed — all counted from verified on-chain payments. |
 
@@ -95,7 +94,7 @@ pnpm dev            # then, in another terminal:
 node scripts/smoke.mjs http://localhost:3000
 ```
 
-The smoke test stands in for three people with three phones: it generates real Ed25519 keys, derives their Nimiq addresses, signs the real login challenges, then drives the whole flow over HTTP — create, join, pay, swap with two signatures, solo box. Contributions correctly stay unverified, because nothing was put on chain.
+The smoke test stands in for three people with three phones: it generates real Ed25519 keys, derives their Nimiq addresses, signs the real login challenges, then drives the whole flow over HTTP — create, join, pay, swap with two signatures. Contributions correctly stay unverified, because nothing was put on chain.
 
 ## How it is built
 
@@ -105,7 +104,7 @@ apps/web/          Next.js (App Router) mini app + API routes
   lib/signature.ts      Ed25519 verification, public key ↔ address binding
   lib/rpc.ts            read-only Albatross RPC (payment verification)
   lib/verifier.ts       finds the matching transaction, promotes the contribution
-packages/core/     Pure domain: circles, rounds, swaps, solo boxes, trust
+packages/core/     Pure domain: circles, rounds, swaps, trust
   src/circle.ts         round state machine and its invariants
   src/verify.ts         the transaction matcher
   src/swap.ts           two-signature position permutation

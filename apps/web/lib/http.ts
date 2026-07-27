@@ -1,4 +1,4 @@
-import { CircleError, SoloError, SwapError } from '@kolo/core'
+import { CircleError, SwapError } from '@kolo/core'
 
 /**
  * One error shape for every route.
@@ -8,7 +8,7 @@ import { CircleError, SoloError, SwapError } from '@kolo/core'
  * generic message — an unexpected failure must never leak internals into a UI.
  */
 export function apiError(error: unknown): Response {
-  if (error instanceof CircleError || error instanceof SwapError || error instanceof SoloError)
+  if (error instanceof CircleError || error instanceof SwapError)
     return Response.json({ error: error.code, message: error.message }, { status: 400 })
 
   if (error instanceof Error && error.name === 'ZodError')

@@ -5,7 +5,6 @@ import type {
   Contribution,
   Member,
   Round,
-  SoloBox,
   Swap,
   TrustRecord,
 } from '../types'
@@ -134,18 +133,11 @@ export class PgRepository implements Repository {
     return rows.map(r => r.data)
   }
 
-  async listBoxContributions(boxId: string): Promise<Contribution[]> {
-    const rows = await this.sql`
-      select data from contributions where box_id = ${boxId} order by created_at asc
-    ` as Row<Contribution>[]
-    return rows.map(r => r.data)
-  }
-
   async createContribution(contribution: Contribution): Promise<Contribution> {
     await this.sql`
-      insert into contributions (id, circle_id, box_id, from_address, status, data)
+      insert into contributions (id, circle_id, from_address, status, data)
       values (
-        ${contribution.id}, ${contribution.circleId}, ${contribution.boxId},
+        ${contribution.id}, ${contribution.circleId},
         ${normalizeAddress(contribution.fromAddress)}, ${contribution.status},
         ${JSON.stringify(contribution)}
       )
@@ -193,33 +185,6 @@ export class PgRepository implements Repository {
       update swaps set status = ${swap.status}, data = ${JSON.stringify(swap)} where id = ${swap.id}
     `
     return swap
-  }
-
-  async createBox(box: SoloBox): Promise<SoloBox> {
-    await this.sql`
-      insert into boxes (id, code, owner_address, data)
-      values (${box.id}, ${box.code}, ${normalizeAddress(box.ownerAddress)}, ${JSON.stringify(box)})
-    `
-    return box
-  }
-
-  async getBox(idOrCode: string): Promise<SoloBox | null> {
-    const rows = await this.sql`
-      select data from boxes where id = ${idOrCode} or code = ${idOrCode.toUpperCase()} limit 1
-    ` as Row<SoloBox>[]
-    return rows[0]?.data ?? null
-  }
-
-  async updateBox(box: SoloBox): Promise<SoloBox> {
-    await this.sql`update boxes set data = ${JSON.stringify(box)} where id = ${box.id}`
-    return box
-  }
-
-  async listBoxesForAddress(address: string): Promise<SoloBox[]> {
-    const rows = await this.sql`
-      select data from boxes where owner_address = ${normalizeAddress(address)} order by created_at desc
-    ` as Row<SoloBox>[]
-    return rows.map(r => r.data)
   }
 
   async trustFor(address: string): Promise<TrustRecord> {

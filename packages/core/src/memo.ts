@@ -7,30 +7,19 @@
  * every extra byte is fee the user pays for nothing.
  *
  *   circle round:  kolo:<code>:r<index>
- *   solo period:   kolo:s<code>:p<index>
  */
 
 const CIRCLE_MEMO = /^kolo:([a-z0-9]{4,10}):r(\d{1,3})$/i
-const SOLO_MEMO = /^kolo:s([a-z0-9]{4,10}):p(\d{1,3})$/i
 
 export function circleMemo(code: string, roundIndex: number): string {
   return `kolo:${code.toLowerCase()}:r${roundIndex}`
 }
 
-export function soloMemo(code: string, periodIndex: number): string {
-  return `kolo:s${code.toLowerCase()}:p${periodIndex}`
-}
-
 export type ParsedMemo =
   | { kind: 'circle', code: string, index: number }
-  | { kind: 'solo', code: string, index: number }
   | null
 
 export function parseMemo(memo: string): ParsedMemo {
-  const solo = SOLO_MEMO.exec(memo)
-  if (solo)
-    return { kind: 'solo', code: solo[1].toLowerCase(), index: Number(solo[2]) }
-
   const circle = CIRCLE_MEMO.exec(memo)
   if (circle)
     return { kind: 'circle', code: circle[1].toLowerCase(), index: Number(circle[2]) }

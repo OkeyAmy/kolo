@@ -59,7 +59,7 @@ export function KoloMark({ size = 30 }: { size?: number }) {
           <stop offset="1" stopColor="#E8734A" />
         </linearGradient>
       </defs>
-      {/* A pot with a coin slot: the savings box the app is named after. */}
+      {/* The pot everyone pays into, and one member collects each round. */}
       <path
         d="M6 13.5C6 10.4624 8.46243 8 11.5 8h9C23.5376 8 26 10.4624 26 13.5v6C26 24.7467 21.7467 29 16.5 29h-1C10.2533 29 6 24.7467 6 19.5v-6Z"
         fill="url(#kolo-g)"

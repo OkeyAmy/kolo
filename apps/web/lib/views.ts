@@ -3,7 +3,6 @@ import type {
   Contribution,
   Member,
   Round,
-  SoloBox,
   Swap,
   TrustRecord,
 } from '@kolo/core'
@@ -55,27 +54,10 @@ export interface PaymentInstruction {
   roundIndex: number
 }
 
-export interface BoxPeriodView {
-  index: number
-  status: 'saved' | 'pending' | 'open' | 'missed' | 'upcoming'
-  opensAt: string
-  txHash: string | null
-}
-
-export interface BoxView {
-  box: SoloBox
-  periods: BoxPeriodView[]
-  streak: number
-  saved: string
-  target: string
-  payment: PaymentInstruction | null
-}
-
 export interface HomeView {
   address: string | null
   displayName: string | null
   trust: TrustRecord | null
   myCircles: CircleSummary[]
   publicCircles: CircleSummary[]
-  myBoxes: BoxView[]
 }

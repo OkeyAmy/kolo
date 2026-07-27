@@ -224,24 +224,6 @@ const replay = await call(bem, 'POST', `/api/swaps/${swapId}`, {
 })
 check('the swap cannot be replayed', replay.status === 400)
 
-console.log('\nSolo box')
-const box = await call(ada, 'POST', '/api/boxes', {
-  name: 'Smoke box',
-  currency: 'NIM',
-  amount: '100',
-  cadence: 'weekly',
-  periods: 4,
-  vaultAddress: chi.address,
-})
-check('box created', box.status === 200, JSON.stringify(box.body))
-
-const saved = await call(ada, 'POST', `/api/boxes/${box.body.id}/contributions`, {})
-check('first period accepted', saved.status === 200, JSON.stringify(saved.body))
-check('and stays unverified without a chain match', saved.body.status === 'submitted')
-
-const notMyBox = await call(bem, 'POST', `/api/boxes/${box.body.id}/contributions`, {})
-check('someone else cannot save into your box', notMyBox.status === 400)
-
 console.log('\nHealth')
 const health = await call(ada, 'GET', '/api/health')
 check('health reports the chain reachable', health.body.checks?.chain === 'ok', JSON.stringify(health.body))

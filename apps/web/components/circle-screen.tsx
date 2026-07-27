@@ -50,6 +50,9 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
         amount: payment.amount,
         currency: payment.currency,
         memo: payment.memo,
+        // Verification matches on the sender address, so a payment made from
+        // any other account would never match. Caught before money moves.
+        expectedSender: address ?? undefined,
       })
 
       const result = await post<{ status: string }>(

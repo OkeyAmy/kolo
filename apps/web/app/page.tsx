@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { formatAmount } from '@kolo/core'
 import { CircleCard } from '@/components/circle-card'
 import { Header } from '@/components/header'
 import { LandingRing } from '@/components/landing-ring'
@@ -58,53 +57,6 @@ export default async function HomePage() {
                   </Card>
                 )
               : rest.map(summary => <CircleCard key={summary.circle.id} summary={summary} />)}
-          </Section>
-        )}
-
-        {session && (
-          <Section
-            title="Your savings box"
-            action={<Link href="/solo/new" className="text-[13px] font-semibold text-gold">New box</Link>}
-          >
-            {home.myBoxes.length === 0
-              ? (
-                  <Link href="/solo/new" className="press glass block rounded-[22px] p-5">
-                    <div className="flex items-center gap-4">
-                      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gold/15 text-2xl">🪙</div>
-                      <div className="min-w-0">
-                        <h3 className="text-[16px] font-bold tracking-tight">Save on your own first</h3>
-                        <p className="mt-0.5 text-[13px] leading-snug text-muted">
-                          Set a target, put a little away each week, keep the streak. Same proof on chain.
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              : home.myBoxes.map(box => (
-                  <Link key={box.box.id} href={`/solo/${box.box.code}`} className="press glass block rounded-[22px] p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="truncate text-[16px] font-bold tracking-tight">{box.box.name}</h3>
-                        <p className="tnum mt-0.5 text-[13px] text-muted">
-                          {formatAmount(box.saved, box.box.currency)}
-                          {' of '}
-                          {formatAmount(box.target, box.box.currency)}
-                        </p>
-                      </div>
-                      {box.streak > 0
-                        ? (
-                            <Badge tone="gold">
-                              🔥
-                              {' '}
-                              {box.streak}
-                              {' '}
-                              in a row
-                            </Badge>
-                          )
-                        : box.payment ? <Badge tone="sky">Due now</Badge> : null}
-                    </div>
-                  </Link>
-                ))}
           </Section>
         )}
 

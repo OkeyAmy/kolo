@@ -49,7 +49,6 @@ function paid(
   return {
     id: `con_${from}_${roundIndex}`,
     circleId,
-    boxId: null,
     roundIndex,
     fromAddress: from,
     toAddress: to,

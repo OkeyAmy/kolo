@@ -3,7 +3,6 @@ import type {
   Contribution,
   Member,
   Round,
-  SoloBox,
   Swap,
   TrustRecord,
 } from './types'
@@ -41,7 +40,6 @@ export interface Repository {
   replaceRounds: (circleId: string, rounds: Round[]) => Promise<Round[]>
 
   listContributions: (circleId: string) => Promise<Contribution[]>
-  listBoxContributions: (boxId: string) => Promise<Contribution[]>
   createContribution: (contribution: Contribution) => Promise<Contribution>
   updateContribution: (contribution: Contribution) => Promise<Contribution>
   listUnverifiedContributions: () => Promise<Contribution[]>
@@ -50,11 +48,6 @@ export interface Repository {
   getSwap: (id: string) => Promise<Swap | null>
   createSwap: (swap: Swap) => Promise<Swap>
   updateSwap: (swap: Swap) => Promise<Swap>
-
-  createBox: (box: SoloBox) => Promise<SoloBox>
-  getBox: (idOrCode: string) => Promise<SoloBox | null>
-  updateBox: (box: SoloBox) => Promise<SoloBox>
-  listBoxesForAddress: (address: string) => Promise<SoloBox[]>
 
   trustFor: (address: string) => Promise<TrustRecord>
 }
@@ -66,7 +59,6 @@ export class MemoryRepository implements Repository {
   private rounds = new Map<string, Round[]>()
   private contributions: Contribution[] = []
   private swaps: Swap[] = []
-  private boxes = new Map<string, SoloBox>()
 
   async getProfile(address: string): Promise<Profile | null> {
     return this.profiles.get(normalizeAddress(address)) ?? null
@@ -142,10 +134,6 @@ export class MemoryRepository implements Repository {
     return this.contributions.filter(c => c.circleId === circleId)
   }
 
-  async listBoxContributions(boxId: string): Promise<Contribution[]> {
-    return this.contributions.filter(c => c.boxId === boxId)
-  }
-
   async createContribution(contribution: Contribution): Promise<Contribution> {
     this.contributions.push(contribution)
     return contribution
@@ -178,30 +166,6 @@ export class MemoryRepository implements Repository {
   async updateSwap(swap: Swap): Promise<Swap> {
     this.swaps = this.swaps.map(s => s.id === swap.id ? swap : s)
     return swap
-  }
-
-  async createBox(box: SoloBox): Promise<SoloBox> {
-    this.boxes.set(box.id, box)
-    return box
-  }
-
-  async getBox(idOrCode: string): Promise<SoloBox | null> {
-    const direct = this.boxes.get(idOrCode)
-    if (direct)
-      return direct
-    const code = idOrCode.toUpperCase()
-    return [...this.boxes.values()].find(b => b.code === code) ?? null
-  }
-
-  async updateBox(box: SoloBox): Promise<SoloBox> {
-    this.boxes.set(box.id, box)
-    return box
-  }
-
-  async listBoxesForAddress(address: string): Promise<SoloBox[]> {
-    return [...this.boxes.values()]
-      .filter(b => sameAddress(b.ownerAddress, address))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }
 
   async trustFor(address: string): Promise<TrustRecord> {

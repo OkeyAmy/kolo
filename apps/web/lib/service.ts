@@ -1,21 +1,15 @@
 import type { Circle, Contribution, Repository, Round } from '@kolo/core'
-import type { BoxView, CircleSummary, CircleView, HomeView, MemberView, PaymentInstruction } from './views'
+import type { CircleSummary, CircleView, HomeView, MemberView, PaymentInstruction } from './views'
 import {
   circleMemo,
   currentRound as currentRoundOf,
   defaultDisplayName,
-  openPeriod,
   potTotal,
   roundObligations,
   sameAddress,
-  soloMemo,
-  soloPeriods,
-  soloSaved,
-  soloStreak,
-  soloTarget,
 } from '@kolo/core'
 import { getRepository } from '@kolo/core/db'
-import { refreshBox, refreshCircle } from './verifier'
+import { refreshCircle } from './verifier'
 
 export function repo(): Repository {
   return getRepository()
@@ -135,20 +129,18 @@ async function summarize(circle: Circle, viewer: string | null): Promise<CircleS
 export async function loadHome(viewer: string | null, displayName: string | null): Promise<HomeView> {
   const store = repo()
 
-  const [mine, publicCircles, boxes, trust] = await Promise.all([
+  const [mine, publicCircles, trust] = await Promise.all([
     viewer ? store.listCirclesForAddress(viewer) : Promise.resolve([]),
     store.listPublicCircles(),
-    viewer ? store.listBoxesForAddress(viewer) : Promise.resolve([]),
     viewer ? store.trustFor(viewer) : Promise.resolve(null),
   ])
 
   const mineIds = new Set(mine.map(c => c.id))
   const joinable = publicCircles.filter(c => c.status === 'open' && !mineIds.has(c.id))
 
-  const [myCircles, openCircles, myBoxes] = await Promise.all([
+  const [myCircles, openCircles] = await Promise.all([
     Promise.all(mine.map(c => summarize(c, viewer))),
     Promise.all(joinable.slice(0, 8).map(c => summarize(c, viewer))),
-    Promise.all(boxes.map(b => loadBoxView(b.id))),
   ])
 
   return {
@@ -157,44 +149,6 @@ export async function loadHome(viewer: string | null, displayName: string | null
     trust,
     myCircles,
     publicCircles: openCircles,
-    myBoxes: myBoxes.filter((b): b is BoxView => b !== null),
-  }
-}
-
-export async function loadBoxView(idOrCode: string): Promise<BoxView | null> {
-  const store = repo()
-  const found = await store.getBox(idOrCode)
-  if (!found)
-    return null
-
-  await refreshBox(store, found.id)
-
-  const box = (await store.getBox(found.id)) ?? found
-  const contributions = await store.listBoxContributions(box.id)
-  const periods = soloPeriods(box, contributions)
-  const open = openPeriod(periods)
-
-  return {
-    box,
-    periods: periods.map(p => ({
-      index: p.index,
-      status: p.status,
-      opensAt: p.opensAt,
-      txHash: p.contribution?.txHash ?? null,
-    })),
-    streak: soloStreak(periods),
-    saved: soloSaved(box, periods),
-    target: soloTarget(box),
-    payment: open
-      ? {
-          recipient: box.vaultAddress,
-          recipientName: 'your savings address',
-          amount: box.amount,
-          currency: box.currency,
-          memo: soloMemo(box.code, open.index),
-          roundIndex: open.index,
-        }
-      : null,
   }
 }
 

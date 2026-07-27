@@ -107,7 +107,6 @@ describe('applyMatch', () => {
   const contribution: Contribution = {
     id: 'con_1',
     circleId: 'cir_1',
-    boxId: null,
     roundIndex: 1,
     fromAddress: FROM,
     toAddress: TO,
@@ -152,13 +151,11 @@ describe('parseMemo', () => {
     expect(parseMemo('kolo:AB2C4D:r7')).toEqual({ kind: 'circle', code: 'ab2c4d', index: 7 })
   })
 
-  it('round-trips a solo memo', () => {
-    // blindfold: contract — memo grammar kolo:s<code>:p<index> defined in memo.ts
-    expect(parseMemo('kolo:sAB2C4D:p3')).toEqual({ kind: 'solo', code: 'ab2c4d', index: 3 })
-  })
-
   it('returns null for anything else', () => {
     // blindfold: invariant — unrelated transfers must not parse as Kolo activity
     expect(parseMemo('thanks for lunch')).toBe(null)
+    // blindfold: invariant — the solo-box memo grammar was removed with the
+    // feature, so its receipts must no longer parse as Kolo activity
+    expect(parseMemo('kolo:sAB2C4D:p3')).toBe(null)
   })
 })

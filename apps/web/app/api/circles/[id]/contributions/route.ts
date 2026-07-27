@@ -59,7 +59,6 @@ export async function POST(
     const contribution: Contribution = {
       id: newId('con'),
       circleId: circle.id,
-      boxId: null,
       roundIndex: round.index,
       fromAddress: normalizeAddress(session.address),
       toAddress: normalizeAddress(round.recipientAddress),

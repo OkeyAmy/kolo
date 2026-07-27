@@ -125,12 +125,3 @@ export async function refreshCircle(
   if (advanced.circle.status !== circle.status)
     await repo.updateCircle(advanced.circle)
 }
-
-export async function refreshBox(
-  repo: Repository,
-  boxId: string,
-  now = new Date().toISOString(),
-): Promise<void> {
-  const contributions = await repo.listBoxContributions(boxId)
-  await verifyContributions(repo, contributions, now)
-}

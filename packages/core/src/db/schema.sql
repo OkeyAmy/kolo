@@ -39,15 +39,13 @@ create table if not exists rounds (
 
 create table if not exists contributions (
   id            text primary key,
-  circle_id     text references circles(id) on delete cascade,
-  box_id        text,
+  circle_id     text not null references circles(id) on delete cascade,
   from_address  text not null,
   status        text not null,
   data          jsonb not null,
   created_at    timestamptz not null default now()
 );
 create index if not exists contributions_circle_idx on contributions (circle_id);
-create index if not exists contributions_box_idx on contributions (box_id);
 create index if not exists contributions_status_idx on contributions (status);
 create index if not exists contributions_from_idx on contributions (from_address);
 
@@ -59,12 +57,3 @@ create table if not exists swaps (
   created_at  timestamptz not null default now()
 );
 create index if not exists swaps_circle_idx on swaps (circle_id);
-
-create table if not exists boxes (
-  id            text primary key,
-  code          text not null unique,
-  owner_address text not null,
-  data          jsonb not null,
-  created_at    timestamptz not null default now()
-);
-create index if not exists boxes_owner_idx on boxes (owner_address);

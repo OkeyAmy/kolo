@@ -68,8 +68,7 @@ export interface Round {
 
 export interface Contribution {
   id: string
-  circleId: string | null
-  boxId: string | null
+  circleId: string
   roundIndex: number
   fromAddress: string
   toAddress: string
@@ -105,26 +104,6 @@ export interface Swap {
 export interface SignatureProof {
   publicKey: string
   signature: string
-}
-
-/** A personal savings box. One owner, no counterparties, same payment rail. */
-export interface SoloBox {
-  id: string
-  code: string
-  ownerAddress: string
-  name: string
-  currency: Currency
-  network: NimiqNetwork
-  /** Amount per period. */
-  amount: string
-  cadence: Cadence
-  /** Number of periods to complete the box. */
-  periods: number
-  /** Where the owner sends their savings. Must be an address the owner controls. */
-  vaultAddress: string
-  status: 'active' | 'completed' | 'abandoned'
-  createdAt: string
-  completedAt: string | null
 }
 
 export interface TrustRecord {
