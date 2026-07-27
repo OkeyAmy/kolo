@@ -1,5 +1,5 @@
 import type { ChainTransaction, Contribution } from './types'
-import { sameAddress } from './address'
+import { normalizeAddress, sameAddress } from './address'
 import { decodeMemoHex } from './memo'
 
 /**
@@ -7,12 +7,26 @@ import { decodeMemoHex } from './memo'
  *
  * The client tells us it paid. We do not believe it. A contribution is only
  * ever promoted to `verified` when a transaction on the Nimiq chain matches the
- * sender, the recipient, the exact amount and the memo we expected. This is the
- * single most important function in Kolo: it is what lets eight people who do
- * not trust each other trust the same scoreboard.
+ * recipient, the exact amount and the memo we expected. This is the single most
+ * important function in Kolo: it is what lets eight people who do not trust
+ * each other trust the same scoreboard.
+ *
+ * A note on the sender. Nimiq Pay signs messages with one account and can send
+ * transactions from another, so the address a member logs in with is not
+ * necessarily the address their payment leaves from. Requiring the two to be
+ * equal rejected real, correctly-formed payments. Instead a payment is bound to
+ * a member by the transaction hash their own wallet returned, and every hash
+ * can settle at most one contribution (see `usedHashes`). The address that
+ * actually paid is read back off the chain and recorded, never assumed.
  */
 
 export interface MatchExpectation {
+  /**
+   * Hash the wallet handed back to the paying member. When present it binds
+   * this transaction to this member; without it we fall back to matching on the
+   * sender address, which is the stricter but less reliable path.
+   */
+  txHash?: string | null
   fromAddress: string
   toAddress: string
   /** Smallest units, as a decimal string. */
@@ -41,8 +55,15 @@ export function matchTransaction(
   const candidates = transactions.filter((tx) => {
     if (usedHashes.has(tx.hash))
       return false
-    if (!sameAddress(tx.from, expectation.fromAddress))
+    // The wallet's own receipt identifies which member this payment belongs to.
+    // Without one, fall back to trusting the login address.
+    if (expectation.txHash) {
+      if (tx.hash !== expectation.txHash)
+        return false
+    }
+    else if (!sameAddress(tx.from, expectation.fromAddress)) {
       return false
+    }
     if (!sameAddress(tx.to, expectation.toAddress))
       return false
     if (BigInt(tx.value) !== expected)
@@ -79,6 +100,10 @@ export function applyMatch(
     status: 'verified',
     txHash: match.transaction.hash,
     blockNumber: match.transaction.blockNumber,
+    // Read off the chain, not taken from the client. When Nimiq Pay pays from a
+    // different account than the member signed in with, this is the only honest
+    // record of who actually sent the money.
+    settledFrom: normalizeAddress(match.transaction.from),
     verifiedAt: now,
   }
 }

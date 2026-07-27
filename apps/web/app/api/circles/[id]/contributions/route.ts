@@ -67,6 +67,7 @@ export async function POST(
       network: circle.network,
       memo: circleMemo(circle.code, round.index),
       txHash: extractHash(body.txHint),
+      settledFrom: null,
       status: 'submitted',
       blockNumber: null,
       // Backdated by a minute so a transaction that landed on chain a moment

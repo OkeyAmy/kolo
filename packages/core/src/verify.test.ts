@@ -95,6 +95,29 @@ describe('matchTransaction', () => {
     expect(match?.confirmed).toBe(false)
   })
 
+  it('matches a payment sent from a different account than the member logged in with', () => {
+    // Nimiq Pay signs with one account and can send from another, so this is a
+    // real, correctly-formed payment that the sender check used to reject.
+    const other = tx({ from: 'NQ27 K710 DURP RNC0 3PU8 02X3 0AKN 3S4Q 59D5' })
+    const bound = { ...expectation, txHash: tx().hash }
+    // blindfold: invariant — the wallet-returned hash binds the payment to the member, not the login address
+    expect(matchTransaction(bound, [other])?.transaction.hash).toBe(tx().hash)
+  })
+
+  it('still requires recipient, amount and memo when bound by hash', () => {
+    const bound = { ...expectation, txHash: tx().hash }
+    // blindfold: invariant — the hash identifies whose payment it is; it never excuses a wrong recipient, amount or memo
+    expect(matchTransaction(bound, [tx({ value: Number(toBaseUnits('499', 'NIM')) })])).toBe(null)
+    expect(matchTransaction(bound, [tx({ to: 'NQ99 ABCD EFGH 2345 6789 ABCD EFGH 2345 6789' })])).toBe(null)
+    expect(matchTransaction(bound, [tx({ recipientData: encodeMemoHex('kolo:AB2C4D:r2') })])).toBe(null)
+  })
+
+  it('will not settle a contribution with a transaction it did not name', () => {
+    const bound = { ...expectation, txHash: 'aaaa' }
+    // blindfold: invariant — a member cannot claim another member's transfer, because the hash must be the one their own wallet returned
+    expect(matchTransaction(bound, [tx()])).toBe(null)
+  })
+
   it('picks the earliest candidate when a member pays twice', () => {
     const later = tx({ hash: 'bbbb', timestamp: Date.parse('2026-08-02T12:00:00.000Z') })
     const match = matchTransaction(expectation, [later, tx()])
@@ -115,6 +138,7 @@ describe('applyMatch', () => {
     network: 'test',
     memo: MEMO,
     txHash: null,
+    settledFrom: null,
     status: 'submitted',
     blockNumber: null,
     submittedAt: '2026-08-01T11:00:00.000Z',
@@ -131,6 +155,14 @@ describe('applyMatch', () => {
       blockNumber: 57170880,
       verifiedAt: '2026-08-01T12:00:05.000Z',
     })
+  })
+
+  it('records the address that actually paid, not the one assumed', () => {
+    const other = tx({ from: 'NQ27 K710 DURP RNC0 3PU8 02X3 0AKN 3S4Q 59D5' })
+    const match = matchTransaction({ ...expectation, txHash: tx().hash }, [other])
+    const updated = applyMatch(contribution, match, '2026-08-01T12:00:05.000Z')
+    // blindfold: invariant — settledFrom is read off the chain, normalised per address.ts, so the record is honest about who sent the money
+    expect(updated?.settledFrom).toBe('NQ27K710DURPRNC03PU802X30AKN3S4Q59D5')
   })
 
   it('leaves the contribution alone when nothing matched', () => {

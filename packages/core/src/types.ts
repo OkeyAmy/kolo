@@ -76,9 +76,11 @@ export interface Contribution {
   currency: Currency
   network: NimiqNetwork
   memo: string
-  /** Hint returned by the wallet. Verification never depends on it. */
+  /** Hint returned by the wallet, used to bind a chain transaction to a member. */
   txHash: string | null
   status: ContributionStatus
+  /** Address the money actually left, read off the chain once verified. */
+  settledFrom: string | null
   blockNumber: number | null
   submittedAt: string
   verifiedAt: string | null

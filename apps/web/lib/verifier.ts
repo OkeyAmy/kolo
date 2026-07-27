@@ -65,6 +65,7 @@ export async function verifyContributions(
     for (const contribution of group) {
       const match = matchTransaction(
         {
+          txHash: contribution.txHash,
           fromAddress: contribution.fromAddress,
           toAddress: contribution.toAddress,
           amount: contribution.amount,

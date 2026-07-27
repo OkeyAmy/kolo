@@ -57,6 +57,7 @@ function paid(
     network: 'test',
     memo: `kolo:x:r${roundIndex}`,
     txHash: 'abc',
+    settledFrom: null,
     status: 'verified',
     blockNumber: 1,
     submittedAt: verifiedAt,

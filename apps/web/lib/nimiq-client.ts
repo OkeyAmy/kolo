@@ -1,6 +1,5 @@
 import type { NimiqProvider, SignatureResult } from '@nimiq/mini-app-sdk'
 import type { Currency } from '@kolo/core'
-import { sameAddress } from '@kolo/core'
 import { init } from '@nimiq/mini-app-sdk'
 import { encodeFunctionData } from 'viem'
 import { describeWalletError, isCancellation } from './wallet-error'
@@ -121,60 +120,6 @@ export interface PaymentRequest {
   amount: string
   currency: Currency
   memo: string
-  /**
-   * The address Kolo believes is paying — the one this session signed in with.
-   * Checked against the wallet's own account list before sending; see
-   * assertSenderMatches.
-   */
-  expectedSender?: string
-}
-
-/**
- * Refuses to send if the wallet would pay from a different account.
- *
- * `sendBasicTransactionWithData` takes no `from` parameter: Nimiq Pay chooses
- * the sending account itself. If the user switched accounts after signing in,
- * two things go wrong and both are silent. Paying a round would leave the
- * transaction unmatched forever, because verification matches on the sender
- * address. And paying yourself — which happens when the active account is the
- * round's recipient — is rejected by the protocol outright.
- *
- * Catching it here turns both into one sentence the user can act on, before any
- * money moves.
- */
-async function assertSenderMatches(expected: string | undefined, recipient: string): Promise<void> {
-  if (!expected)
-    return
-
-  let accounts: string[]
-  try {
-    accounts = await listAccounts()
-  }
-  catch {
-    // The wallet would not tell us. Let the send proceed and surface whatever
-    // it says, rather than blocking a payment on a failed precheck.
-    return
-  }
-
-  const active = accounts[0]
-  if (!active)
-    return
-
-  if (!sameAddress(active, expected)) {
-    throw new WalletError(
-      'Nimiq Pay is on a different account than the one you signed in with. '
-      + 'Switch back to that account, or sign out of Kolo and reconnect.',
-      'failed',
-    )
-  }
-
-  if (sameAddress(active, recipient)) {
-    throw new WalletError(
-      'This round pays out to the account you are paying from, so there is '
-      + 'nothing to send. You collect this round.',
-      'failed',
-    )
-  }
 }
 
 /**
@@ -188,8 +133,6 @@ async function assertSenderMatches(expected: string | undefined, recipient: stri
 export async function sendPayment(request: PaymentRequest): Promise<string> {
   if (request.currency === 'USDT')
     return sendUsdt(request)
-
-  await assertSenderMatches(request.expectedSender, request.recipient)
 
   try {
     const nimiq = await getProvider()
