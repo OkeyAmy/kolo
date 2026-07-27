@@ -29,6 +29,16 @@ Being explicit, because this is a money app:
 - It **cannot claw money back** if somebody stops paying. No app can. The round is marked short and it shows on that member's record. Kolo says so plainly in the UI rather than pretending otherwise.
 - The payout order is **never random.** It is join order, visible to everyone from the start.
 
+### Why not just use a multisig wallet?
+
+Nimiq already ships [Multisig](https://multisig.nimiq.com/) — a shared wallet where M of N people must sign before funds move. It is a good tool, and it solves a different problem.
+
+A multisig is **shared custody**: the money pools in one wallet and sits there. A savings circle never pools — it rotates. Each round, seven people pay one person directly, and next round they pay someone else. There is no joint balance to guard, no quorum to assemble every time somebody's turn comes, and no moment where the group's money is sitting anywhere.
+
+Kolo also has to track things a wallet has no concept of: whose turn it is, who still owes this round, who paid late, and what happens when someone stops paying. That is bookkeeping over payments, not custody of them.
+
+(For the record: multisig is not exposed to mini apps. The Nimiq provider gives a mini app `listAccounts`, `sign`, the two `sendBasicTransaction` calls and six staking calls — nothing else. Kolo could not use it even if the design called for it.)
+
 ## What you can do
 
 | | |
