@@ -156,7 +156,7 @@ const created = await call(ada, 'POST', '/api/circles', {
   amount: '500',
   cadence: 'weekly',
   seats: 3,
-  visibility: 'public',
+  visibility: 'private',
 })
 check('circle created', created.status === 200, JSON.stringify(created.body))
 const circleId = created.body.id
@@ -172,6 +172,44 @@ check('third member fills the circle', joinChi.body.position === 3, JSON.stringi
 
 const joinFull = await call(forged, 'POST', `/api/circles/${circleId}/join`, {})
 check('a fourth member is refused', joinFull.status === 400 || joinFull.status === 401)
+
+console.log('\nA public circle is gated on the organiser')
+const openCircle = await call(ada, 'POST', '/api/circles', {
+  name: 'Open circle',
+  currency: 'NIM',
+  amount: '500',
+  cadence: 'weekly',
+  seats: 3,
+  visibility: 'public',
+})
+const openId = openCircle.body.id
+
+const asked = await call(bem, 'POST', `/api/circles/${openId}/join`, {})
+check('a stranger is recorded as a request, not a member', asked.body.status === 'requested', JSON.stringify(asked.body))
+check('and holds no payout position', asked.body.position === 0, JSON.stringify(asked.body))
+
+const selfApprove = await call(bem, 'POST', `/api/circles/${openId}/requests`, {
+  address: bem.address,
+  decision: 'approve',
+})
+check('a stranger cannot approve themselves', selfApprove.status === 400, JSON.stringify(selfApprove.body))
+
+const approved = await call(ada, 'POST', `/api/circles/${openId}/requests`, {
+  address: bem.address,
+  decision: 'approve',
+})
+check('the organiser can approve them', approved.body.status === 'active', JSON.stringify(approved.body))
+
+const declinedAsk = await call(chi, 'POST', `/api/circles/${openId}/join`, {})
+check('a second stranger also has to ask', declinedAsk.body.status === 'requested')
+const declined = await call(ada, 'POST', `/api/circles/${openId}/requests`, {
+  address: chi.address,
+  decision: 'decline',
+})
+check('the organiser can decline them', declined.body.status === 'declined', JSON.stringify(declined.body))
+
+const askAgain = await call(chi, 'POST', `/api/circles/${openId}/join`, {})
+check('a declined person cannot quietly rejoin', askAgain.status === 400)
 
 console.log('\nPaying a round')
 const pay = await call(bem, 'POST', `/api/circles/${circleId}/contributions`, { roundIndex: 1 })

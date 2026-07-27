@@ -73,7 +73,9 @@ export function createCircle(input: CreateCircleInput): { circle: Circle, member
       address: normalizeAddress(input.creatorAddress),
       displayName: input.creatorName,
       position: 1,
+      status: 'active',
       joinedAt: now,
+      decidedAt: now,
     },
   }
 }
@@ -88,18 +90,84 @@ export function joinCircle(
   if (circle.status !== 'open')
     throw new CircleError('This circle has already started. Ask them to open the next one.', 'not_open')
 
-  if (members.some(m => sameAddress(m.address, address)))
+  const existing = members.find(m => sameAddress(m.address, address))
+  if (existing) {
+    if (existing.status === 'requested')
+      throw new CircleError('You have already asked to join. The organiser has to approve it.', 'already_requested')
+    if (existing.status === 'declined')
+      throw new CircleError('The organiser did not approve this request.', 'declined')
     throw new CircleError('You are already in this circle.', 'already_member')
+  }
 
-  if (members.length >= circle.seats)
+  if (seatsTaken(members) >= circle.seats)
     throw new CircleError('This circle is full.', 'full')
+
+  // Anyone can ask to join a public circle, so the organiser vouches for them
+  // before they hold a seat. An invite link is itself a vouch, so a private
+  // circle admits the holder straight away.
+  const requiresApproval = circle.visibility === 'public'
+    && !sameAddress(circle.creatorAddress, address)
 
   return {
     circleId: circle.id,
     address: normalizeAddress(address),
     displayName,
-    position: members.length + 1,
+    position: requiresApproval ? 0 : seatsTaken(members) + 1,
+    status: requiresApproval ? 'requested' : 'active',
     joinedAt: now,
+    decidedAt: requiresApproval ? null : now,
+  }
+}
+
+/** Only approved members hold a seat; pending requests never fill the circle. */
+export function seatsTaken(members: Member[]): number {
+  return members.filter(m => m.status === 'active').length
+}
+
+export function activeMembers(members: Member[]): Member[] {
+  return members.filter(m => m.status === 'active')
+}
+
+export function pendingRequests(members: Member[]): Member[] {
+  return members.filter(m => m.status === 'requested')
+}
+
+/**
+ * The organiser admits someone who asked to join, or turns them down.
+ *
+ * A seat is only assigned on approval, so the payout order still reflects the
+ * order people actually entered the circle, and a pending request can never
+ * displace someone already in.
+ */
+export function decideRequest(
+  circle: Circle,
+  members: Member[],
+  deciderAddress: string,
+  candidateAddress: string,
+  decision: 'approve' | 'decline',
+  now = new Date().toISOString(),
+): Member {
+  if (!sameAddress(circle.creatorAddress, deciderAddress))
+    throw new CircleError('Only the person who started this circle can approve members.', 'not_organiser')
+
+  if (circle.status !== 'open')
+    throw new CircleError('This circle has already started.', 'not_open')
+
+  const candidate = members.find(m => sameAddress(m.address, candidateAddress))
+  if (!candidate || candidate.status !== 'requested')
+    throw new CircleError('There is no pending request from that person.', 'no_request')
+
+  if (decision === 'decline')
+    return { ...candidate, status: 'declined', position: 0, decidedAt: now }
+
+  if (seatsTaken(members) >= circle.seats)
+    throw new CircleError('Every seat is already taken.', 'full')
+
+  return {
+    ...candidate,
+    status: 'active',
+    position: seatsTaken(members) + 1,
+    decidedAt: now,
   }
 }
 
@@ -116,7 +184,7 @@ export function activateCircle(
 ): { circle: Circle, rounds: Round[] } {
   if (circle.status !== 'open')
     throw new CircleError('Circle is not open.', 'not_open')
-  if (members.length !== circle.seats)
+  if (seatsTaken(members) !== circle.seats)
     throw new CircleError('Every seat has to be filled before the circle starts.', 'not_full')
 
   const activated: Circle = { ...circle, status: 'active', activatedAt: now }
@@ -124,7 +192,9 @@ export function activateCircle(
 }
 
 export function buildRounds(circle: Circle, members: Member[], startAt: string): Round[] {
-  const ordered = [...members].sort((a, b) => a.position - b.position)
+  // Only seat-holders appear in the payout order. A pending or declined request
+  // never becomes a round.
+  const ordered = activeMembers(members).sort((a, b) => a.position - b.position)
   const days = CADENCE_DAYS[circle.cadence]
 
   return ordered.map((member, i) => {
@@ -143,7 +213,7 @@ export function buildRounds(circle: Circle, members: Member[], startAt: string):
 
 /** Rounds are recomputed from positions whenever a swap changes the order. */
 export function reassignRecipients(rounds: Round[], members: Member[]): Round[] {
-  const byPosition = new Map(members.map(m => [m.position, m.address]))
+  const byPosition = new Map(activeMembers(members).map(m => [m.position, m.address]))
   return rounds.map(round =>
     round.status === 'complete' || round.status === 'incomplete'
       ? round
@@ -171,7 +241,8 @@ export function roundObligations(
 ): Obligation[] {
   const late = new Date(now) > new Date(round.dueAt)
 
-  return [...members]
+  // Only seat-holders owe a round.
+  return activeMembers(members)
     .sort((a, b) => a.position - b.position)
     .map((member) => {
       if (sameAddress(member.address, round.recipientAddress))

@@ -77,6 +77,21 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
     }
   }
 
+  async function decide(address: string, decision: 'approve' | 'decline') {
+    setBusy(true)
+    setNote(null)
+    try {
+      await post(`/api/circles/${circle.id}/requests`, { address, decision })
+      router.refresh()
+    }
+    catch (error) {
+      setNote({ tone: 'bad', text: message(error) })
+    }
+    finally {
+      setBusy(false)
+    }
+  }
+
   async function share() {
     const url = `${window.location.origin}/j/${circle.code}`
     const text = `Join my Kolo circle "${circle.name}" — ${formatAmount(circle.amount, circle.currency)} ${CADENCE_LABEL[circle.cadence]}.`
@@ -131,6 +146,20 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
               ? <Button variant="quiet" size="md" disabled>You are in</Button>
               : <Button size="md" loading={busy || connecting} onClick={() => void join()}>Join</Button>}
           </div>
+        </Card>
+      )}
+
+      {view.yourRequest && (
+        <Card className="rise border-sky/25 bg-sky/[0.06] text-center">
+          <p className="text-[13px] font-semibold text-sky">Waiting for approval</p>
+          <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+            You have asked to join. This circle is open to anyone, so
+            {' '}
+            {view.members.find(m => m.position === 1)?.displayName ?? 'the organiser'}
+            {' '}
+            approves each person before they take a seat. Nothing is owed until
+            they do.
+          </p>
         </Card>
       )}
 
@@ -189,6 +218,27 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
 
       {circle.status === 'active' && view.currentRound && (
         <RoundTiming round={view.currentRound} nextRecipient={view.nextRecipientName} />
+      )}
+
+      {view.isOrganiser && view.requests.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-faint">
+            Asking to join
+          </h2>
+          <p className="text-[13px] leading-relaxed text-muted">
+            Approve only people you would trust with the pot. Someone who
+            collects early and stops paying cannot be forced to pay — that is
+            true of every savings circle, and Kolo holds no money to claw back.
+          </p>
+          {view.requests.map(person => (
+            <RequestRow
+              key={person.address}
+              person={person}
+              busy={busy}
+              onDecide={decision => void decide(person.address, decision)}
+            />
+          ))}
+        </section>
       )}
 
       <section className="space-y-3">
@@ -286,6 +336,92 @@ function RoundTiming({ round, nextRecipient }: { round: Round, nextRecipient: st
 
 function formatDay(date: Date): string {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+}
+
+/**
+ * Somebody asking into a public circle, and the record the organiser needs to
+ * judge them on. A brand-new address is not an accusation — everybody starts
+ * there — but it is the fact that matters most, so it is stated plainly.
+ */
+function RequestRow({
+  person,
+  busy,
+  onDecide,
+}: {
+  person: MemberView
+  busy: boolean
+  onDecide: (decision: 'approve' | 'decline') => void
+}) {
+  const trust = person.trust
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-center gap-3">
+        <Avatar address={person.address} name={person.displayName} size={40} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[14.5px] font-semibold">{person.displayName}</p>
+          <p className="tnum truncate text-[12px] text-faint">{shortAddress(person.address)}</p>
+        </div>
+      </div>
+
+      <TrustLine trust={trust} />
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <Button variant="ghost" size="md" disabled={busy} onClick={() => onDecide('decline')}>
+          Decline
+        </Button>
+        <Button size="md" loading={busy} onClick={() => onDecide('approve')}>
+          Approve
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+function TrustLine({ trust }: { trust: MemberView['trust'] }) {
+  if (!trust || trust.roundsPaid + trust.roundsMissed === 0) {
+    return (
+      <p className="rounded-xl bg-white/[0.04] px-3 py-2 text-[12.5px] leading-relaxed text-muted">
+        <span className="font-semibold text-cream">No history yet.</span>
+        {' '}
+        This address has not completed a round in any circle, so there is
+        nothing to vouch for them.
+      </p>
+    )
+  }
+
+  const clean = trust.roundsMissed === 0
+
+  return (
+    <p
+      className={`tnum rounded-xl px-3 py-2 text-[12.5px] leading-relaxed ${
+        clean ? 'bg-mint/10 text-mint' : 'bg-rose/10 text-rose'
+      }`}
+    >
+      <span className="font-semibold">
+        {trust.roundsPaid}
+        {' paid'}
+      </span>
+      {trust.roundsMissed > 0 && (
+        <>
+          {', '}
+          <span className="font-semibold">
+            {trust.roundsMissed}
+            {' missed'}
+          </span>
+        </>
+      )}
+      {trust.circlesCompleted > 0 && (
+        <span className="text-muted">
+          {' · '}
+          {trust.circlesCompleted}
+          {' circle'}
+          {trust.circlesCompleted === 1 ? '' : 's'}
+          {' finished'}
+        </span>
+      )}
+    </p>
+  )
 }
 
 function MemberRow({

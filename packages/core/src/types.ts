@@ -50,10 +50,22 @@ export interface Member {
   circleId: string
   address: string
   displayName: string
-  /** 1-based payout position. Mutable only through an applied Swap. */
+  /**
+   * 1-based payout position. Mutable only through an applied Swap.
+   * Zero while a request is still pending: an unapproved person holds no seat.
+   */
   position: number
+  /**
+   * Public circles let anyone ask to join, so the creator approves each one.
+   * A ROSCA has always worked because somebody vouches for you; this is that
+   * step. Private circles admit invite-holders directly.
+   */
+  status: MemberStatus
   joinedAt: string
+  decidedAt: string | null
 }
+
+export type MemberStatus = 'requested' | 'active' | 'declined'
 
 export interface Round {
   circleId: string

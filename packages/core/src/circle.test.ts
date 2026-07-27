@@ -4,9 +4,11 @@ import {
   activateCircle,
   advanceCircle,
   createCircle,
+  decideRequest,
   isRoundSettled,
   joinCircle,
   roundObligations,
+  seatsTaken,
 } from './circle'
 import { toBaseUnits } from './money'
 
@@ -24,13 +26,14 @@ function circleInput() {
     amount: toBaseUnits('500', 'NIM'),
     cadence: 'weekly' as const,
     seats: 3,
-    visibility: 'public' as const,
+    visibility: 'private' as const,
     creatorAddress: addr(1),
     creatorName: 'Ada',
     now: T0,
   }
 }
 
+/** An invite-only circle: the link is the vouch, so joining seats you directly. */
 function fill(seats = 3) {
   const { circle, member } = createCircle({ ...circleInput(), seats })
   const members: Member[] = [member]
@@ -220,5 +223,98 @@ describe('isRoundSettled', () => {
 
     const full = [...partial, paid(active.id, members[2].address, members[0].address, 1, T0)]
     expect(isRoundSettled(roundObligations(rounds[0], members, full, T0))).toBe(true)
+  })
+})
+
+describe('joining a public circle', () => {
+  function publicCircle(seats = 3) {
+    const { circle, member } = createCircle({
+      ...circleInput(),
+      seats,
+      visibility: 'public',
+    })
+    return { circle, members: [member] }
+  }
+
+  it('does not seat a stranger until the organiser approves', () => {
+    const { circle, members } = publicCircle()
+    const asked = joinCircle(circle, members, addr(2), 'Stranger', T0)
+    // blindfold: invariant — anyone may ask to join a public circle, but a
+    // request holds no seat and no payout position until it is approved
+    expect(asked.status).toBe('requested')
+    expect(asked.position).toBe(0)
+  })
+
+  it('does not let pending requests fill the circle', () => {
+    const { circle, members } = publicCircle()
+    const all = [...members]
+    for (let i = 2; i <= 5; i++)
+      all.push(joinCircle(circle, all, addr(i), `Asker ${i}`, T0))
+    // blindfold: invariant — seatsTaken counts approved members only, so
+    // requests can never crowd out the seats or trigger activation
+    expect(seatsTaken(all)).toBe(1)
+    expect(() => activateCircle(circle, all, T0)).toThrow(/Every seat/)
+  })
+
+  it('seats an approved member in the order they were admitted', () => {
+    const { circle, members } = publicCircle()
+    const asked = joinCircle(circle, members, addr(2), 'Stranger', T0)
+    const approved = decideRequest(circle, [...members, asked], addr(1), addr(2), 'approve', T0)
+    // blindfold: invariant — a position is assigned on approval, after the
+    // seats already taken, so approval never displaces an existing member
+    expect(approved.status).toBe('active')
+    expect(approved.position).toBe(2)
+  })
+
+  it('refuses to let anyone but the organiser approve', () => {
+    const { circle, members } = publicCircle()
+    const asked = joinCircle(circle, members, addr(2), 'Stranger', T0)
+    const all = [...members, asked]
+    // blindfold: invariant — only the circle's creator vouches for members;
+    // otherwise a stranger could admit themselves
+    expect(() => decideRequest(circle, all, addr(2), addr(2), 'approve', T0))
+      .toThrow(/Only the person who started/)
+  })
+
+  it('keeps a declined person out and off the payout order', () => {
+    const { circle, members } = publicCircle()
+    const asked = joinCircle(circle, members, addr(2), 'Stranger', T0)
+    const declined = decideRequest(circle, [...members, asked], addr(1), addr(2), 'decline', T0)
+    // blindfold: invariant — a declined request holds no seat, and asking
+    // again must not quietly re-enter them
+    expect(declined.status).toBe('declined')
+    expect(declined.position).toBe(0)
+    expect(() => joinCircle(circle, [...members, declined], addr(2), 'Stranger', T0))
+      .toThrow(/did not approve/)
+  })
+
+  it('lets the same person ask only once while it is pending', () => {
+    const { circle, members } = publicCircle()
+    const asked = joinCircle(circle, members, addr(2), 'Stranger', T0)
+    // blindfold: invariant — a repeat request must not create a second record
+    expect(() => joinCircle(circle, [...members, asked], addr(2), 'Stranger', T0))
+      .toThrow(/already asked to join/)
+  })
+
+  it('never makes a pending request owe or collect a round', () => {
+    const { circle, members } = publicCircle(4)
+    const seated = [...members]
+    // Two people admitted, then someone asks while a seat is still free.
+    for (const i of [2, 3]) {
+      const asked = joinCircle(circle, seated, addr(i), `M${i}`, T0)
+      seated.push(decideRequest(circle, [...seated, asked], addr(1), addr(i), 'approve', T0))
+    }
+    const pending = joinCircle(circle, seated, addr(9), 'Latecomer', T0)
+    const withPending = [...seated, pending]
+    const lastAsk = joinCircle(circle, withPending, addr(4), 'M4', T0)
+    const all = [...withPending, decideRequest(circle, [...withPending, lastAsk], addr(1), addr(4), 'approve', T0)]
+
+    const { rounds } = activateCircle(circle, all, T0)
+    const owed = roundObligations(rounds[0], all, [], T0)
+    // blindfold: invariant — rounds and obligations are built from seat-holders
+    // only, so an unapproved person is neither owed money nor asked for any
+    expect(rounds).toHaveLength(4)
+    expect(rounds.map(r => r.recipientAddress)).not.toContain(pending.address)
+    expect(owed.map(o => o.member.address)).not.toContain(pending.address)
   })
 })

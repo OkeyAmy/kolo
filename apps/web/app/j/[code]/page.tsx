@@ -116,8 +116,17 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
             </li>
             <li>
               If someone stops paying, the round is marked short and it shows on
-              their record. Kolo cannot claw money back — no app can.
+              their record. Kolo cannot claw money back — no app can. Join
+              circles with people you would trust with the pot.
             </li>
+            {circle.visibility === 'public' && (
+              <li>
+                <span className="font-semibold text-cream">This circle is open to anyone,</span>
+                {' '}
+                so the organiser approves each person before they take a seat.
+                You will be asked to wait until they do.
+              </li>
+            )}
           </ul>
         </Card>
       </main>

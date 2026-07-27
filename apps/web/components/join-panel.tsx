@@ -34,6 +34,8 @@ export function JoinPanel({
         setBusy(false)
         return
       }
+      // A public circle only records a request here; the circle screen tells
+      // them it is waiting on the organiser.
       await post(`/api/circles/${circleId}/join`)
       router.push(`/c/${code}`)
       router.refresh()

@@ -1,9 +1,12 @@
 import type { Circle, Contribution, Repository, Round } from '@kolo/core'
 import type { CircleSummary, CircleView, HomeView, MemberView, PaymentInstruction } from './views'
 import {
+  activeMembers,
   circleMemo,
   currentRound as currentRoundOf,
   defaultDisplayName,
+  normalizeAddress,
+  pendingRequests,
   potTotal,
   roundObligations,
   sameAddress,
@@ -39,7 +42,20 @@ export async function loadCircle(
   const round = currentRoundOf(rounds)
   const obligations = round ? roundObligations(round, members, contributions) : []
 
-  const memberViews: MemberView[] = members.map((member) => {
+  const seated = activeMembers(members)
+  const requested = pendingRequests(members)
+
+  // Trust is what someone actually decides on, so it is fetched for everybody
+  // in the circle and everybody asking to join, not just summarised in place.
+  const trustByAddress = new Map(
+    await Promise.all(
+      [...seated, ...requested].map(async m =>
+        [normalizeAddress(m.address), await store.trustFor(m.address)] as const,
+      ),
+    ),
+  )
+
+  const memberViews: MemberView[] = seated.map((member) => {
     const obligation = obligations.find(o => sameAddress(o.member.address, member.address))
     const mine = contributions.filter(c => sameAddress(c.fromAddress, member.address))
     const missedRounds = rounds.filter(
@@ -56,8 +72,20 @@ export async function loadCircle(
       txHash: obligation?.contribution?.txHash ?? null,
       roundsPaid: mine.filter(c => c.status === 'verified').length,
       roundsMissed: missedRounds.length,
+      trust: trustByAddress.get(normalizeAddress(member.address)) ?? null,
     }
   })
+
+  const requestViews: MemberView[] = requested.map(member => ({
+    ...member,
+    isYou: Boolean(viewer && sameAddress(member.address, viewer)),
+    isRecipient: false,
+    state: 'due' as const,
+    txHash: null,
+    roundsPaid: 0,
+    roundsMissed: 0,
+    trust: trustByAddress.get(normalizeAddress(member.address)) ?? null,
+  }))
 
   const you = memberViews.find(m => m.isYou) ?? null
 
@@ -69,7 +97,10 @@ export async function loadCircle(
     contributions,
     swaps,
     potAmount: potTotal(circle.amount, circle.seats),
-    seatsTaken: members.length,
+    seatsTaken: seated.length,
+    requests: requestViews,
+    isOrganiser: Boolean(viewer && sameAddress(circle.creatorAddress, viewer)),
+    yourRequest: requestViews.find(r => r.isYou) ?? null,
     you,
     payment: buildPayment(circle, round, memberViews, you),
     memberSince: you?.joinedAt ?? null,
@@ -122,7 +153,10 @@ async function summarize(circle: Circle, viewer: string | null): Promise<CircleS
 
   return {
     circle,
-    seatsTaken: members.length,
+    seatsTaken: activeMembers(members).length,
+    pendingRequests: viewer && sameAddress(circle.creatorAddress, viewer)
+      ? pendingRequests(members).length
+      : 0,
     roundIndex: round?.index ?? 0,
     potAmount: potTotal(circle.amount, circle.seats),
     recipientName: recipient?.displayName ?? null,

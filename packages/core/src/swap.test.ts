@@ -45,12 +45,14 @@ describe('swapPayload', () => {
 describe('requestSwap', () => {
   function setup(seats = 4) {
     const { circle, rounds } = activeCircle(seats)
-    const members = rounds.map((round, i) => ({
+    const members: Member[] = rounds.map((round, i) => ({
       circleId: circle.id,
       address: round.recipientAddress,
       displayName: `Member ${i + 1}`,
       position: i + 1,
       joinedAt: T0,
+      status: 'active',
+      decidedAt: T0,
     }))
     return { circle, rounds, members }
   }
@@ -154,12 +156,14 @@ describe('requestSwap', () => {
 describe('acceptSwap', () => {
   function pending(seats = 4) {
     const { circle, rounds } = activeCircle(seats)
-    const members = rounds.map((round, i) => ({
+    const members: Member[] = rounds.map((round, i) => ({
       circleId: circle.id,
       address: round.recipientAddress,
       displayName: `Member ${i + 1}`,
       position: i + 1,
       joinedAt: T0,
+      status: 'active',
+      decidedAt: T0,
     }))
     const swap = requestSwap({
       circle,
@@ -253,12 +257,14 @@ describe('acceptSwap', () => {
 describe('declineSwap', () => {
   it('resolves without touching the order', () => {
     const { circle, rounds } = activeCircle(4)
-    const members = rounds.map((round, i) => ({
+    const members: Member[] = rounds.map((round, i) => ({
       circleId: circle.id,
       address: round.recipientAddress,
       displayName: `Member ${i + 1}`,
       position: i + 1,
       joinedAt: T0,
+      status: 'active',
+      decidedAt: T0,
     }))
     const swap = requestSwap({
       circle,
