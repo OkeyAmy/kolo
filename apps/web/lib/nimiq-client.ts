@@ -2,6 +2,7 @@ import type { NimiqProvider, SignatureResult } from '@nimiq/mini-app-sdk'
 import type { Currency } from '@kolo/core'
 import { init } from '@nimiq/mini-app-sdk'
 import { encodeFunctionData } from 'viem'
+import { describeWalletError, isCancellation } from './wallet-error'
 
 /**
  * The wallet layer.
@@ -16,7 +17,12 @@ import { encodeFunctionData } from 'viem'
  */
 
 export class WalletError extends Error {
-  constructor(message: string, readonly kind: 'cancelled' | 'unavailable' | 'failed') {
+  constructor(
+    message: string,
+    readonly kind: 'cancelled' | 'unavailable' | 'failed',
+    /** Raw wallet payload, kept so the UI can offer the exact text for a bug report. */
+    readonly detail?: string,
+  ) {
     super(message)
     this.name = 'WalletError'
   }
@@ -24,22 +30,25 @@ export class WalletError extends Error {
 
 /** SDK methods resolve with an error envelope instead of throwing. Normalise. */
 function unwrap<T>(result: T | { error: { type: string, message: string } }): T {
-  if (result && typeof result === 'object' && 'error' in result) {
-    const { type, message } = (result as { error: { type: string, message: string } }).error
-    if (/permission|denied|reject|cancel/i.test(`${type} ${message}`))
-      throw new WalletError('You cancelled that in Nimiq Pay.', 'cancelled')
-    throw new WalletError(message || 'Nimiq Pay could not complete that.', 'failed')
-  }
+  if (result && typeof result === 'object' && 'error' in result)
+    throw asWalletError(result)
   return result as T
 }
 
 function asWalletError(error: unknown): WalletError {
   if (error instanceof WalletError)
     return error
-  const message = error instanceof Error ? error.message : String(error)
-  if (/permission|denied|reject|cancel/i.test(message))
-    return new WalletError('You cancelled that in Nimiq Pay.', 'cancelled')
-  return new WalletError(message || 'Nimiq Pay could not complete that.', 'failed')
+
+  const detail = describeWalletError(error)
+  if (isCancellation(detail))
+    return new WalletError('You cancelled that in Nimiq Pay.', 'cancelled', detail)
+
+  // No message at all means the wallet refused without saying why. Say exactly
+  // that, rather than inventing a reason the user cannot act on.
+  if (!detail)
+    return new WalletError('Nimiq Pay could not complete that, and did not say why.', 'failed')
+
+  return new WalletError(detail, 'failed', detail)
 }
 
 let provider: Promise<NimiqProvider> | null = null
