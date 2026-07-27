@@ -199,7 +199,12 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
 
         <ul className="space-y-2">
           {members.map(member => (
-            <MemberRow key={member.address} member={member} explorer={explorer} />
+            <MemberRow
+              key={member.address}
+              member={member}
+              explorer={explorer}
+              roundSettled={view.currentRound?.status === 'complete'}
+            />
           ))}
           {Array.from({ length: seatsLeft }, (_, i) => (
             <li key={`empty-${i}`} className="hairline flex items-center gap-3 rounded-2xl border-dashed px-4 py-3 opacity-60">
@@ -240,9 +245,22 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
   )
 }
 
-function MemberRow({ member, explorer }: { member: MemberView, explorer: string }) {
+function MemberRow({
+  member,
+  explorer,
+  roundSettled,
+}: {
+  member: MemberView
+  explorer: string
+  roundSettled: boolean
+}) {
   const tone = {
-    recipient: { label: 'Collecting', tone: 'gold' as const },
+    // "Collecting" is the truth while payments are still arriving; once every
+    // member's payment has been matched on chain, the money is already in this
+    // person's wallet, so the past tense is the honest label.
+    recipient: roundSettled
+      ? { label: 'Collected', tone: 'mint' as const }
+      : { label: 'Collecting', tone: 'gold' as const },
     verified: { label: 'Paid ✓', tone: 'mint' as const },
     submitted: { label: 'Confirming…', tone: 'sky' as const },
     due: { label: 'Not yet', tone: 'neutral' as const },
