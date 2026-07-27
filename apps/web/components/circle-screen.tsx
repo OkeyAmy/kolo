@@ -1,5 +1,6 @@
 'use client'
 
+import type { Round } from '@kolo/core'
 import type { CircleView, MemberView } from '@/lib/views'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -186,6 +187,10 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
         </Card>
       )}
 
+      {circle.status === 'active' && view.currentRound && (
+        <RoundTiming round={view.currentRound} nextRecipient={view.nextRecipientName} />
+      )}
+
       <section className="space-y-3">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-faint">
@@ -240,6 +245,47 @@ export function CircleScreen({ view, explorer }: { view: CircleView, explorer: s
       </Card>
     </main>
   )
+}
+
+/**
+ * When this round closes and who is next.
+ *
+ * The most common question in a circle is "when is the next one?", and the
+ * answer is not obvious: a round closes as soon as everybody has paid, which is
+ * usually well before its deadline. Both dates are shown so nobody has to guess
+ * which rule applied.
+ */
+function RoundTiming({ round, nextRecipient }: { round: Round, nextRecipient: string | null }) {
+  const due = new Date(round.dueAt)
+  const settled = round.status === 'complete'
+
+  return (
+    <Card className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[13px] text-muted">
+          {settled ? 'Next round starts' : 'This round closes'}
+        </span>
+        <span className="tnum text-[13.5px] font-semibold">
+          {settled ? 'once everyone is ready' : formatDay(due)}
+        </span>
+      </div>
+      {nextRecipient && (
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[13px] text-muted">Next to collect</span>
+          <span className="truncate text-[13.5px] font-semibold text-gold">{nextRecipient}</span>
+        </div>
+      )}
+      <p className="pt-1 text-[12.5px] leading-relaxed text-faint">
+        {settled
+          ? 'Everyone paid, so this round is done. The next one opens straight away.'
+          : `The round ends the moment the last person pays — it does not wait for ${formatDay(due)}.`}
+      </p>
+    </Card>
+  )
+}
+
+function formatDay(date: Date): string {
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
 function MemberRow({

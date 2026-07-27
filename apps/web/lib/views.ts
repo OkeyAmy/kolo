@@ -43,6 +43,8 @@ export interface CircleView {
   /** Set when the viewer still owes this round. */
   payment: PaymentInstruction | null
   memberSince: string | null
+  /** Who collects the round after this one. Null on the final round. */
+  nextRecipientName: string | null
 }
 
 export interface PaymentInstruction {

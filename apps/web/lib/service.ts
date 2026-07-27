@@ -73,6 +73,11 @@ export async function loadCircle(
     you,
     payment: buildPayment(circle, round, memberViews, you),
     memberSince: you?.joinedAt ?? null,
+    // Position order is fixed at activation, so whoever holds the next seat is
+    // already known — worth showing, because it is the question everyone asks.
+    nextRecipientName: round
+      ? memberViews.find(m => m.position === round.index + 1)?.displayName ?? null
+      : null,
   }
 }
 
